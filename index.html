@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Valorant-Inspired Gun Shop</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #0f1923;
+      color: #f0f0f0;
+    }
+    header {
+      background-color: #ff4655;
+      padding: 1rem;
+      text-align: center;
+    }
+    header h1 {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 3rem;
+      margin: 0;
+      letter-spacing: 2px;
+    }
+    .category {
+      padding: 2rem;
+    }
+    .category h2 {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #ff4655;
+      padding-bottom: 0.5rem;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+    .product {
+      background-color: #1f2a38;
+      border-radius: 12px;
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      transition: transform 0.2s;
+    }
+    .product:hover {
+      transform: scale(1.03);
+    }
+    .product img {
+  width: 100%;
+  height: 200px; 
+  object-fit: contain; 
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+    }
+    .product h3 {
+      margin: 0.5rem 0 0.2rem;
+    }
+    .product p {
+      margin: 0;
+      font-weight: bold;
+    }
+    .product button {
+      background-color: #ff4655;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 6px;
+      margin-top: 0.5rem;
+    }
+    #cart, form {
+      margin: 2rem;
+      background-color: #1f2a38;
+      padding: 1rem;
+      border-radius: 10px;
+    }
+    h2 {
+      font-family: 'Bebas Neue', cursive;
+      font-size: 2rem;
+      margin-top: 0;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .cart-item button {
+      background: none;
+      color: red;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+    }
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: none;
+      margin-top: 0.3rem;
+    }
+    .footer {
+      text-align: center;
+      margin: 2rem;
+      font-size: 0.9rem;
+      color: #aaa;
+    }
+    button[type="submit"] {
+      margin-top: 1rem;
+      background: #ff4655;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    #notification {
+      display: none;
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: #28a745;
+      color: white;
+      padding: 0.8rem 1.2rem;
+      border-radius: 8px;
+      z-index: 999;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="notification">Added to cart successfully!</div>
+
+  <header>
+    <h1>Valorant-Inspired Gun Shop</h1>
+  </header>
+
+  <div id="products"></div>
+
+  <div id="cart">
+    <h2>Shopping Cart</h2>
+    <div id="cart-items"></div>
+    <p><strong>Total:</strong> ₱<span id="cart-total">0</span></p>
+  </div>
+
+  <form action="http://47.129.9.35/cs3/checkout.php" method="post" onsubmit="return prepareCheckout()">
+    <h2>Checkout</h2>
+    <label for="cust_name">Name:</label>
+    <input type="text" id="cust_name" name="cust_name" required >
+    <label for="cust_email">Email:</label>
+    <input type="email" id="cust_email" name="cust_email" required >
+    <label for="cust_addr">Address:</label>
+    <input type="text" id="cust_addr" name="cust_addr" required >
+    <input type="hidden" name="cust_order" id="cust_order" >
+    <button type="submit">Submit Order</button>
+  </form>
+
+  <div class="footer">
+    <p><a href="about%20the%20company.html" style="color:#ff4655;text-decoration:underline;">About the Company</a></p>
+  </div>
+
+  <script>
+    const products = {
+      Rifles: [
+        { name: "Prime Vandal", price: 1775, img: "https://lh3.googleusercontent.com/pw/AP1GczMm1gaGqHspCmbuZpZ2ov0rmqZxT2hWKSV94pnUQk8AqWiGRh0SPJYVpuL2-ssgPLZ9eocaTC7og3GetdNaFW6Pp2QT-QUZPIf538ilN5BkATv26A=w2400" },
+        { name: "Reaver Phantom", price: 1775, img: "https://lh3.googleusercontent.com/pw/AP1GczPCJmtnB_NYUG4DDnfMaGsCT6OKYXhOqxDqtRyX9bBe4m53bnSlWyW9dGY7GtFEWdnITjvpEawTS_9YDgUoLVRNkTRSulA8eadtjzaS_wbQpblDgw=w2400" },
+        { name: "Ion Vandal", price: 1775, img: "https://lh3.googleusercontent.com/pw/AP1GczPuhzK_M5X3EcmY_NRQA42KngseNFfyiJzYfmw7-V0HO8zBiIPv3LPdQZ_LHI1piv_a2d_QwsMsQEWuqplqFxkR_rA6TQw6pVm3EXRSF0Ty_4p61A=w2400" },
+        { name: "Divergence Vandal", price: 2175, img: "https://lh3.googleusercontent.com/pw/AP1GczPwWJ1ADfIXPmq1XiHp6PYnvcglhreOeOZnZE5-ZZdaogcl1vOLtPPOx8j3E9Mv0jm65J0C1HKnmXfkUFj5_N06Kv1nP_uGnbNqznRUOKzkSlUURw=w2400" },
+        { name: "RGX 11z Pro Phantom", price: 2175, img: "https://lh3.googleusercontent.com/pw/AP1GczPKZHv0sZXkbzFJut8Kc7FFSAdgYMDhksyUN1E93IfrwuIcisKXyW-Qxwye2svjoRRRCsR_xq3Nly_l6A6DDuzRtyVR_85Tuqvu32xvUe5HFzME6Q=w2400" }
+      ],
+      Pistols: [
+        { name: "Reaver Ghost", price: 1775, img: "https://lh3.googleusercontent.com/pw/AP1GczNOjoHt_WsQZ_yGp5YS-g3dwKB52lNGAoR5w5w1J_e9zlpOZnS9vHqqSpSM8gKow3Pk1sUKQKMATKau_jHcHwghEIv1aQsKQyjIBe6zs5pfAOo_8Q=w2400" },
+        { name: "Kuronami Sheriff", price: 2375, img: "https://lh3.googleusercontent.com/pw/AP1GczNlCMlZXBZ7pWhIe_GHU--Ec4-44rWXkGYyCKU1wOznXRlFBNUSn3WjzRI_Eyd--YKLtalXf9wgQzo2GWXc8Ui9oRm374GmeFLhfGI5ASyhBVUbfQ=w2400" },
+        { name: "RGX 11z Pro Frenzy", price: 2175, img: "https://lh3.googleusercontent.com/pw/AP1GczOrmvmHHzGaqdhVv-sfl8cVVCxTasHI_vSI6KTsS9tClI2iA_uesMEjPkGr39OKNgm-G8wAgtY6DOFTNqiapQTTQpCjQv7ptR2wMibzkJsNfMAZvw=w2400" },
+        { name: "Forsaken Classic", price: 1775, img: "https://lh3.googleusercontent.com/pw/AP1GczPNOVXbQlW9obOdUf2L5PyaTrJ3iroIM5dGsuHE3MCn2nESTThIRrTziy8wgxDrekw10H6ApbVO9nl3LtOLXdy-XLjA54hQNEbWapwPXttHT4ahgw=w2400" },
+        { name: "Singularity Ghost", price: 2175, img: "https://lh3.googleusercontent.com/pw/AP1GczMSwuqPuM-ohEaXCX8wYtc75ixkkOnvoRxJDtLimrcIh9V_-F5jRgLAD7SHaBh9_EdqmHwyqiGtCWiK3XVUBs09VmT5J299jGCEngOm_DJ_2CgeHQ=w2400" }
+      ],
+      Melee: [
+        { name: "Prime 2.0 Karambit", price: 3550, img: "https://lh3.googleusercontent.com/pw/AP1GczMFoKQsxpXWqC1KKbBwGGGZQi6UfonzTLqITxAIgwHt_a6dCmTPTKOWBSIj6jP-FOTp4-l2ADlMpek4N_NwLvFLH0Ry3sSpV2W-u-H4zkQy8njQdA=w2400" },
+        { name: "RGX 11z Pro Firefly", price: 4350, img: "https://lh3.googleusercontent.com/pw/AP1GczMBYFQ-fPgjnv1WASQ_b3WkZrnfnUIs9ph4m64qayw_33sobgeFg6IP-ejegTaGPi_HguhxcUdzuO1Ff0QIFTu9Qzl9Nbf2sLmS2I0sPW0cp3511w=w2400" },
+        { name: "Xenohunter Knife", price: 3550, img: "https://lh3.googleusercontent.com/pw/AP1GczOJoissqImuq7m7Ct0vPAOsbCLgbyCfBk02thGQq7RAzhO1D4GQTunxAq-vZjlEjai8YSB-heybUX8XrNvEOVPZWCcI-esxRFOTKt4mnuuvx7VyUg=w2400" },
+        { name: "Elderflame Dagger", price: 4950, img: "https://lh3.googleusercontent.com/pw/AP1GczPZWUobKi3za-WSoLoJ3nL9bnogtf3DP0zxymz-Rz6IbWyaUWGaq2wqKLulabrecP0DIWu2gcjuWIarciBOywSc62XJ34K6YlgrfIdQMoMd6qpwAw=w2400" },
+        { name: "Glitchpop Axe", price: 4350, img: "https://lh3.googleusercontent.com/pw/AP1GczNz7OvOBd9QoxpFAIS0EW5IgwX49yFAmvrRmLEk2RQsM5O6hia8Vt3OJaMDNXG1ywhKOq1Ngw5mG4dqps1DxI2SoqEZ0yB9feNWe4F689Oyy06ZhA=w2400" }
+      ],
+      Bundles: [
+        { name: "Elderflame Bundle", price: 9900, img: "https://lh3.googleusercontent.com/pw/AP1GczM-P_c0qxXMJkqFEg8qqnFagBkRESLzWAcWfM76-FKkL7wIEqbDpzJ1Snrz66S14sVEuuKbGmZ4Yw7U9G2_TDx5J-Q1T9JjFu-ABZG_018gSfGyqw=w2400" },
+        { name: "Reaver 2.0 Bundle", price: 7100, img: "https://lh3.googleusercontent.com/pw/AP1GczMyY7Fy1ovEFr3aRLrGJITASd03-vP4Ul1VVYfChFxEhpg5PIFcuhDvpmgjDKF3vvFUgKM6ewS1F5nUBkL5bzL4dAYLKQcJ9NAKxlbcwMimHxhVag=w2400" },
+        { name: "RGX 11z Pro Bundle (EP3)", price: 8700, img: "https://lh3.googleusercontent.com/pw/AP1GczMB6MJniyw1BnD97_5NJgrP0qnVMr1S6a-ZxXlyKlWJGW-IeSWYfBRx2qdfFR4PmT10Pb6Ws49quQp-uCZ2zt_1on_6pSeykRdzl0J91kpzBD_b5w=w2400" },
+        { name: "Ion Bundle (EP1)", price: 7100, img: "https://lh3.googleusercontent.com/pw/AP1GczMhdz7p0k1py1M328XzNiI6ju-t839pM2FIRS1MbA9agTgZMIKP77o53CI3R7k5pEhMoFaeVwVuyZ2-JKg_FwdrkPp2bYN37Lx6zGRGTWGYBezJ-w=w2400" },
+        { name: "Glitchpop Bundle (EP2)", price: 8700, img: "https://lh3.googleusercontent.com/pw/AP1GczO0IomjTrj78Vxoasy-ukypWaq8X8L79WmaEU6BT9H07qmQjrcyi0FHAx1zQ15OAIMOtCLWA9StCM0tYDIVl1u0MHxRooNRmxNqH1eY74xKAD3BEg=w2400" }
+      ]
+    };
+
+    const productsDiv = document.getElementById("products");
+    const cartItems = document.getElementById("cart-items");
+    const cartTotal = document.getElementById("cart-total");
+    const hiddenOrderInput = document.getElementById("cust_order");
+    const notification = document.getElementById("notification");
+    let cart = [];
+
+    function renderProducts() {
+      for (let category in products) {
+        const section = document.createElement("div");
+        section.className = "category";
+        section.innerHTML = `<h2>${category}</h2><div class="product-grid"></div>`;
+        const grid = section.querySelector(".product-grid");
+
+        products[category].forEach(product => {
+          const div = document.createElement("div");
+          div.className = "product";
+          div.innerHTML = `
+            <img src="${product.img}" alt="${product.name}">
+            <h3>${product.name}</h3>
+            <p>₱${product.price}</p>
+            <button onclick='addToCart(${JSON.stringify(product)})'>Add to Cart</button>
+          `;
+          grid.appendChild(div);
+        });
+
+        productsDiv.appendChild(section);
+      }
+    }
+
+    function addToCart(product) {
+      cart.push(product);
+      updateCart();
+      showNotification("Added to cart successfully!");
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCart();
+      showNotification("Removed from cart successfully!");
+    }
+
+    function updateCart() {
+      cartItems.innerHTML = "";
+      let total = 0;
+      cart.forEach((item, index) => {
+        total += item.price;
+        const div = document.createElement("div");
+        div.className = "cart-item";
+        div.innerHTML = `
+          <span>${item.name} - ₱${item.price}</span>
+          <button onclick="removeFromCart(${index})">✖</button>
+        `;
+        cartItems.appendChild(div);
+      });
+      cartTotal.textContent = total;
+    }
+
+    function prepareCheckout() {
+      const emailInput = document.getElementById("cust_email");
+      const nameInput = document.getElementById("cust_name");
+      const addrInput = document.getElementById("cust_addr");
+
+      if (cart.length === 0) {
+        alert("Your cart is empty! Please add items before checking out.");
+        return false;
+      }
+
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(emailInput.value)) {
+        alert("Please enter a valid email address.");
+        emailInput.focus();
+        return false;
+      }
+
+      if (!nameInput.value.trim() || !addrInput.value.trim()) {
+        alert("Please complete all required fields.");
+        return false;
+      }
+
+      const order = cart.map(item => ({
+        prod_name: item.name,
+        prod_price: item.price
+      }));
+      hiddenOrderInput.value = JSON.stringify(order);
+      return true;
+    }
+
+    function showNotification(message) {
+      notification.textContent = message;
+      notification.style.backgroundColor = message.includes("Removed") ? "#dc3545" : "#28a745";
+      notification.style.display = "block";
+      setTimeout(() => {
+        notification.style.display = "none";
+      }, 1000);
+    }
+
+    renderProducts();
+  </script>
+</body>
+</html>
